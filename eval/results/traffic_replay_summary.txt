@@ -1,0 +1,26 @@
+n_requests=4000 seed=7 n_intents=15 (includes 4 deliberately confusable pairs)
+
+no_cache:
+  requests: 4000
+  hit rate: 0.0%  (exact=0, semantic=0)
+  wrong-answer rate (of semantic hits): 0.0% (0/0)
+  total cost: $0.0926
+  latency p50/p95: 0.797s / 1.934s
+
+exact_only:
+  requests: 4000
+  hit rate: 93.8%  (exact=3753, semantic=0)
+  wrong-answer rate (of semantic hits): 0.0% (0/0)
+  total cost: $0.0055
+  latency p50/p95: 0.000s / 0.469s
+
+semantic_tuned:
+  requests: 4000
+  hit rate: 99.1%  (exact=760, semantic=3205)
+  wrong-answer rate (of semantic hits): 18.9% (607/3205)
+  total cost: $0.0008
+  latency p50/p95: 0.007s / 0.009s
+
+exact_only saves $0.0871 vs no-cache (94.0%)
+
+semantic_tuned saves $0.0919 vs no-cache (99.2%)

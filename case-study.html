@@ -1,0 +1,609 @@
+<!-- content wrapped by Artifact skeleton at publish time: no doctype/html/head/body of our own -->
+<title>The Threshold Problem</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#F1F3F6; --paper-raised:#FFFFFF; --paper-sunk:#E6E9EF;
+    --ink:#181B22; --ink-soft:#4B5163; --ink-faint:#7A8194;
+    --line:#D7DCE5; --line-soft:#E4E8EF;
+    --signal:#4C5FD9; --signal-ink:#3B49B0; --signal-soft:#E7E9FA;
+    --amber:#B8791E; --amber-soft:#F7ECDA;
+    --good:#1F8F63; --good-soft:#E4F5EE;
+    --bad:#C43E2F; --bad-soft:#FBE7E4;
+    --chart-precision:#4C5FD9; --chart-recall:#B8791E; --chart-f1:#9199AC;
+    --font-display:"Newsreader",ui-serif,Georgia,serif;
+    --font-body:"Archivo",ui-sans-serif,system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#10141C; --paper-raised:#171C27; --paper-sunk:#0C0F16;
+      --ink:#E7EAF2; --ink-soft:#AEB5C7; --ink-faint:#767E92;
+      --line:#2A3142; --line-soft:#212736;
+      --signal:#8A97F0; --signal-ink:#AEB8FF; --signal-soft:#232A44;
+      --amber:#D9A94A; --amber-soft:#332A18;
+      --good:#3FBE8C; --good-soft:#12291F;
+      --bad:#EC7568; --bad-soft:#331714;
+      --chart-precision:#8A97F0; --chart-recall:#D9A94A; --chart-f1:#6B7284;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10141C; --paper-raised:#171C27; --paper-sunk:#0C0F16;
+    --ink:#E7EAF2; --ink-soft:#AEB5C7; --ink-faint:#767E92;
+    --line:#2A3142; --line-soft:#212736;
+    --signal:#8A97F0; --signal-ink:#AEB8FF; --signal-soft:#232A44;
+    --amber:#D9A94A; --amber-soft:#332A18;
+    --good:#3FBE8C; --good-soft:#12291F;
+    --bad:#EC7568; --bad-soft:#331714;
+    --chart-precision:#8A97F0; --chart-recall:#D9A94A; --chart-f1:#6B7284;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--signal-soft); color:var(--ink);}
+
+  .wrap{max-width:1040px; margin:0 auto; padding:0 28px;}
+  .prose{max-width:680px; margin:0 auto;}
+  .panel{max-width:980px; margin:0 auto;}
+
+  h1,h2,h3{font-family:var(--font-display); font-weight:500; text-wrap:balance; color:var(--ink); margin:0;}
+  p{margin:0 0 1.1em; color:var(--ink-soft);}
+  p:last-child{margin-bottom:0;}
+  strong{color:var(--ink); font-weight:600;}
+  a{color:var(--signal-ink);}
+  code, .mono{font-family:var(--font-mono);}
+
+  .eyebrow{font-family:var(--font-mono); font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint);}
+
+  /* ---------- masthead ---------- */
+  .masthead{border-bottom:1px solid var(--line); padding:22px 0;}
+  .masthead .wrap{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .masthead-mark{font-family:var(--font-mono); font-size:13px; letter-spacing:.02em; color:var(--ink-soft);}
+  .masthead-mark b{color:var(--ink); font-weight:500;}
+  .masthead-nav{display:flex; gap:22px; font-family:var(--font-mono); font-size:12.5px;}
+  .masthead-nav a{color:var(--ink-faint); text-decoration:none;}
+  .masthead-nav a:hover{color:var(--signal);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:76px 0 64px;}
+  .hero h1{font-size:clamp(30px,4.4vw,48px); line-height:1.16; max-width:820px;}
+  .hero .eyebrow{margin-bottom:18px; display:block;}
+  .hero-sub{max-width:600px; font-size:17px; margin-top:22px;}
+  .hero-evidence{margin-top:44px; border:1px solid var(--line); background:var(--paper-raised); border-radius:3px; padding:26px 28px; display:grid; grid-template-columns:1fr auto 1fr; gap:22px; align-items:center;}
+  .hero-evidence .q{font-family:var(--font-display); font-style:italic; font-size:16.5px; color:var(--ink); line-height:1.45;}
+  .hero-evidence .q span{display:block; font-family:var(--font-mono); font-style:normal; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px;}
+  .hero-score{text-align:center;}
+  .hero-score .num{font-family:var(--font-mono); font-size:30px; font-weight:500; color:var(--bad); line-height:1;}
+  .hero-score .lbl{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-top:6px;}
+  .hero-caption{margin-top:14px; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-faint);}
+  .hero-meta{margin-top:40px; display:flex; gap:10px; flex-wrap:wrap;}
+  .chip{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); border:1px solid var(--line); border-radius:100px; padding:5px 12px; background:var(--paper-raised);}
+
+  /* ---------- sections ---------- */
+  section{padding:64px 0;}
+  section + section{border-top:1px solid var(--line-soft);}
+  .kicker{display:flex; align-items:baseline; gap:14px; margin-bottom:28px;}
+  .kicker .idx{font-family:var(--font-mono); font-size:13px; color:var(--signal); border:1px solid var(--signal); border-radius:100px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .kicker h2{font-size:27px;}
+  .kicker .tag{font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); align-self:center; margin-left:auto; white-space:nowrap;}
+
+  h3.sub{font-family:var(--font-body); font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink); margin:36px 0 14px;}
+
+  /* ---------- stat tiles ---------- */
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden; margin:30px 0;}
+  .stat-row.two{grid-template-columns:repeat(2,1fr);}
+  .stat{background:var(--paper-raised); padding:22px 22px 20px;}
+  .stat .num{font-family:var(--font-mono); font-size:32px; font-weight:500; color:var(--ink); line-height:1;}
+  .stat .num.good{color:var(--good);} .stat .num.bad{color:var(--bad);} .stat .num.signal{color:var(--signal);}
+  .stat .lbl{margin-top:8px; font-size:13px; color:var(--ink-soft);}
+
+  /* ---------- evidence panels (wide) ---------- */
+  .evidence{margin:36px 0; border:1px solid var(--line); background:var(--paper-raised); border-radius:3px; padding:28px 30px;}
+  .evidence-title{font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:18px;}
+
+  /* ---------- chart ---------- */
+  .chart-legend{display:flex; gap:20px; flex-wrap:wrap; margin-bottom:14px; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);}
+  .chart-legend .sw{display:inline-flex; align-items:center; gap:7px;}
+  .chart-legend .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  svg.chart{width:100%; height:auto; overflow:visible; font-family:var(--font-mono);}
+  .chart .axis-line{stroke:var(--line); stroke-width:1;}
+  .chart .gridline{stroke:var(--line-soft); stroke-width:1;}
+  .chart .axis-label{fill:var(--ink-faint); font-size:10.5px;}
+  .chart .chosen-line{stroke:var(--ink-faint); stroke-width:1; stroke-dasharray:3 3;}
+  .chart .chosen-label{fill:var(--ink); font-size:10.5px;}
+  .hover-dot{opacity:0; transition:opacity .1s;}
+  .chart-tooltip{position:absolute; pointer-events:none; background:var(--ink); color:var(--paper); font-family:var(--font-mono); font-size:11.5px; padding:8px 10px; border-radius:3px; line-height:1.5; opacity:0; transition:opacity .08s; transform:translate(-50%,-100%); white-space:nowrap; z-index:5;}
+  :root[data-theme="dark"] .chart-tooltip, @media (prefers-color-scheme:dark){ .chart-tooltip{} }
+  .chart-wrap{position:relative;}
+  .chart-hit-area{fill:transparent;}
+
+  /* bars */
+  .bars{display:flex; gap:34px;}
+  .bar-group{flex:1;}
+  .bar-group h4{font-family:var(--font-mono); font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 14px; font-weight:500;}
+  .bar-row{display:grid; grid-template-columns:110px 1fr 56px; align-items:center; gap:10px; margin-bottom:12px; position:relative;}
+  .bar-row .name{font-size:12.5px; color:var(--ink-soft);}
+  .bar-track{background:var(--line-soft); border-radius:2px; height:20px; position:relative; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:2px 0 0 2px;}
+  .bar-row .val{font-family:var(--font-mono); font-size:12.5px; text-align:right; color:var(--ink); font-variant-numeric:tabular-nums;}
+
+  /* ---------- adversarial table ---------- */
+  table.audit{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.audit th{text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; padding:0 10px 10px 0; border-bottom:1px solid var(--line);}
+  table.audit td{padding:11px 10px 11px 0; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-soft);}
+  table.audit td.pair{color:var(--ink); max-width:340px;}
+  table.audit td.pair .a, table.audit td.pair .b{display:block;}
+  table.audit td.pair .b{margin-top:3px; color:var(--ink-soft);}
+  table.audit td.sim{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .verdict{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11.5px; padding:3px 9px; border-radius:100px; white-space:nowrap;}
+  .verdict.bad{background:var(--bad-soft); color:var(--bad);}
+  .verdict.good{background:var(--good-soft); color:var(--good);}
+  .overflow-x{overflow-x:auto;}
+
+  /* ---------- gap cards ---------- */
+  .gap-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden; margin-top:30px;}
+  .gap-card{background:var(--paper-raised); padding:22px;}
+  .gap-card .g-eyebrow{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--bad); margin-bottom:10px;}
+  .gap-card p{font-size:13.5px; margin:0;}
+
+  /* ---------- incident callout ---------- */
+  .incident{border:1px solid var(--bad); background:var(--bad-soft); border-radius:3px; padding:28px 30px; margin:30px 0;}
+  .incident .i-eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--bad); margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .incident p{color:var(--ink);}
+  .incident code{background:var(--paper-raised); padding:1px 6px; border-radius:3px; font-size:12.5px;}
+
+  /* ---------- recap table ---------- */
+  table.recap{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.recap th{text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; padding:0 16px 12px 0; border-bottom:1px solid var(--line);}
+  table.recap td{padding:14px 16px 14px 0; border-bottom:1px solid var(--line-soft); vertical-align:top; color:var(--ink-soft);}
+  table.recap td:first-child{color:var(--ink); font-weight:500; white-space:nowrap;}
+  table.recap td.evidence-link{font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- run it ---------- */
+  pre{background:var(--paper-sunk); border:1px solid var(--line); border-radius:3px; padding:18px 20px; overflow-x:auto; font-family:var(--font-mono); font-size:12.5px; line-height:1.7; color:var(--ink);}
+  pre .c{color:var(--ink-faint);}
+
+  /* ---------- definition list (what still doesn't work) ---------- */
+  .issue{display:grid; grid-template-columns:180px 1fr; gap:24px; padding:20px 0; border-bottom:1px solid var(--line-soft);}
+  .issue:last-child{border-bottom:none;}
+  .issue dt{font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); letter-spacing:.02em;}
+  .issue dd{margin:0; color:var(--ink-soft); font-size:14.5px;}
+  .issue dd strong{color:var(--ink);}
+
+  /* ---------- footer ---------- */
+  footer{padding:52px 0 64px; border-top:1px solid var(--line);}
+  footer .foot-row{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; font-family:var(--font-mono); font-size:12px; color:var(--ink-faint);}
+  footer .foot-row a{color:var(--ink-faint);}
+
+  @media (max-width:760px){
+    .hero-evidence{grid-template-columns:1fr;}
+    .hero-evidence .hero-score{order:-1;}
+    .stat-row{grid-template-columns:1fr;}
+    .gap-grid{grid-template-columns:1fr;}
+    .bars{flex-direction:column; gap:26px;}
+    .issue{grid-template-columns:1fr; gap:6px;}
+    .kicker .tag{display:none;}
+  }
+</style>
+
+<div class="masthead">
+  <div class="wrap">
+    <div class="masthead-mark"><b>semantic-cache</b> · a case study</div>
+    <div class="masthead-nav">
+      <a href="#setup">setup</a>
+      <a href="#tradeoff">the tradeoff</a>
+      <a href="#design">the design</a>
+      <a href="#run">run it</a>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Case study · a caching layer for LLM APIs</span>
+    <h1>Two questions that mean opposite things can look 98.4% identical to a machine.</h1>
+    <p class="hero-sub">I built a caching layer that sits in front of an LLM and tries to answer one question honestly: when is it actually safe to reuse an old answer for a question someone asked a slightly different way? Reusing answers saves money, but reuse the wrong one and a user gets a confident answer to a question they never asked. This walkthrough follows what I tried, where it broke, and the fix that helped without fully solving it. Every number here comes from a script in the repo, including the security bug a fresh review caught before I called it done.</p>
+
+    <div class="hero-evidence">
+      <div class="q"><span>Prompt A</span>“What's the refund policy for <em>monthly</em> plans?”</div>
+      <div class="hero-score">
+        <div class="num">0.984</div>
+        <div class="lbl">similarity score</div>
+      </div>
+      <div class="q"><span>Prompt B</span>“What's the refund policy for <em>annual</em> plans?”</div>
+    </div>
+    <div class="hero-caption">I measured this while building the meaning-matching layer. Two questions with opposite correct answers scored as close as two ways of asking the same thing. That gap is what the rest of this project is about.</div>
+
+    <div class="hero-meta">
+      <span class="chip">FastAPI</span>
+      <span class="chip">Redis</span>
+      <span class="chip">spaCy embeddings</span>
+      <span class="chip">Docker Compose</span>
+      <span class="chip">20/20 tests passing</span>
+      <span class="chip">3 reproducible evals</span>
+    </div>
+  </div>
+</div>
+
+<section id="setup">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">01</span><h2>The setup</h2></div>
+    <p>Every LLM-backed support bot gets the same shape of traffic. A small number of questions get asked constantly, each one worded a dozen different ways. <strong>“How do I reset my password”</strong> and <strong>“I forgot my password”</strong> are the same request in different clothes, and a cache that matches on the exact text will never notice.</p>
+    <p>Calling the model every time costs money and adds delay, so the goal is to remember answers and hand them back when the same question comes around again. The easy version matches the exact wording. The interesting version matches meaning: I turn each question into a set of numbers that stands in for what it's asking, then reuse an answer when a new question's numbers land close enough to an old one's.</p>
+    <p>That second version is where the risk lives. A cache that guesses wrong doesn't crash or throw an error. It quietly hands back a confident, wrong answer, and nothing downstream knows to complain.</p>
+    <p>So I built the whole thing around one made-up but realistic setup: a support bot for a subscription product, answering reworded versions of about 15 real questions (billing, refunds, plan changes, outages). Then I asked three things in order. Does plain exact-matching already get me most of the way? Where does meaning-matching break? And when it breaks, can a cheap fix rescue it?</p>
+
+    <h3 class="sub">What was actually built</h3>
+  </div>
+  <div class="wrap panel">
+    <div class="evidence">
+      <div class="overflow-x">
+        <table class="recap">
+          <tr><th>Component</th><th>Choice</th><th>Why</th></tr>
+          <tr><td>Proxy</td><td>FastAPI, single <code>/v1/chat/completions</code> endpoint</td><td>Drop-in in front of any origin model; namespace-scoped per tenant/session.</td></tr>
+          <tr><td>Cache store</td><td>Plain Redis, simple scan for the closest match</td><td>I turned down a heavier vector database on purpose. Reasons are in the design section.</td></tr>
+          <tr><td>Meaning model</td><td>spaCy <code>en_core_web_md</code> word vectors</td><td>A real step down from what I planned, forced by my build environment. Full account in the design section.</td></tr>
+          <tr><td>Safety layer</td><td><code>conflict_guard.py</code>, a rule-based veto after the meaning check</td><td>Catches the wrong matches that meaning alone can't tell apart.</td></tr>
+          <tr><td>Origin (demo)</td><td>A deterministic stand-in with real pricing math; a real local model wired in but not yet run</td><td>Keeps the tests free and repeatable. The real model was blocked by my sandbox, not by the design.</td></tr>
+          <tr><td>Test data</td><td>20,000 human-labeled Quora question pairs</td><td>Real people already labeled these as same-question or not, so I didn't have to invent the answer key.</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="wrap prose">
+    <p style="margin-top:8px; font-size:14px;">I deliberately left some things out: a metrics dashboard, and any claim that meaning-matching saves “30–60%” just because a brief said so. I also built the evidence before writing this page, on purpose. The numbers came first, the story second.</p>
+  </div>
+</section>
+
+<section id="try1">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">02</span><h2>Try 1: exact match only</h2><span class="tag">baseline</span></div>
+    <p>Before touching meaning-matching at all, I checked what the dumbest possible cache buys me. Take the question, look up its exact text, hand back the stored answer if I've seen it word for word. No meaning involved, so there's no way for it to confuse two different questions.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="stat-row">
+      <div class="stat"><div class="num good">93.8%</div><div class="lbl">hit rate, 4,000 simulated requests</div></div>
+      <div class="stat"><div class="num good">94.0%</div><div class="lbl">cost saved vs. no cache</div></div>
+      <div class="stat"><div class="num good">0%</div><div class="lbl">wrong-answer risk</div></div>
+    </div>
+  </div>
+  <div class="wrap prose">
+    <p>That result is easy to undersell. Real support traffic is lopsided: a few questions get asked far more than all the others, and a lot of them arrive as the exact same text (a “Cancel subscription” button, a canned FAQ link). Exact-matching catches almost all of the savings, and it physically cannot serve the wrong answer. Most of the win, none of the risk. That's the bar the next two sections have to beat.</p>
+  </div>
+</section>
+
+<section id="try2">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">03</span><h2>Try 2: matching on meaning</h2><span class="tag">where it breaks</span></div>
+    <p>Exact-matching misses every reworded question, which is the whole reason to want meaning-matching in the first place. The obvious next step: turn both questions into numbers, and count it a match when they land close enough. The only open question seemed to be how close is close enough. So my first experiment swept that setting across its full range and scored each value against 20,000 question pairs that real people had already labeled as same-question or not.</p>
+  </div>
+
+  <div class="wrap panel">
+    <div class="evidence">
+      <div class="evidence-title">How accuracy shifts as I tighten the match line, across 20,000 labeled pairs</div>
+      <div class="chart-legend">
+        <span class="sw"><span class="dot" style="background:var(--chart-precision)"></span>matches that are right</span>
+        <span class="sw"><span class="dot" style="background:var(--chart-recall)"></span>real matches caught</span>
+        <span class="sw"><span class="dot" style="background:var(--chart-f1)"></span>combined (reference)</span>
+      </div>
+      <div class="chart-wrap" id="sweepWrap">
+        <svg class="chart" id="sweepChart" viewBox="0 0 900 360" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="chart-tooltip" id="sweepTooltip"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap prose">
+    <p>Two things matter in that chart. When the cache calls two questions a match, how often is it actually right (the blue line)? And of all the real matches out there, how many does it manage to catch (the amber line)? A cache that's safe to ship needs the blue line high. It never gets there.</p>
+    <p><strong>Nowhere in the range does the cache get more than 54% of its matches right.</strong> The best it reaches is 53.9%, and only by getting so strict that it catches barely a quarter of the real matches. Loosen it enough to be useful and it drops below 46% right: worse than a coin flip on whether a “match” is really the same question. I also tried bolting on a check for shared words, on the theory that overlapping vocabulary might rescue the close calls. It didn't move the ceiling.</p>
+    <p>It's worse on my own scenario than on the general benchmark. I hand-built ten pairs that look almost identical but mean things a support bot must never mix up:</p>
+  </div>
+
+  <div class="wrap panel">
+    <div class="evidence">
+      <div class="evidence-title">Ten hand-built near-identical pairs, meaning-match only, no guard</div>
+      <div class="overflow-x">
+        <table class="audit">
+          <tr><th>Pair</th><th>similarity</th><th>would serve</th></tr>
+          <tr><td class="pair"><span class="a">“Refund policy for monthly plans?”</span><span class="b">“Refund policy for annual plans?”</span></td><td class="sim">0.984</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Can I cancel my subscription?”</span><span class="b">“Can I cancel and still get a refund?”</span></td><td class="sim">0.966</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Discount for students?”</span><span class="b">“Discount for teachers?”</span></td><td class="sim">0.991</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Is my order #4521 delayed?”</span><span class="b">“Is my order #7788 delayed?”</span></td><td class="sim">0.978</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“How do I upgrade to Pro?”</span><span class="b">“How do I downgrade from Pro?”</span></td><td class="sim">0.958</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Price of the annual plan in USD?”</span><span class="b">“…in EUR?”</span></td><td class="sim">0.994</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Why isn't my payment going through?”</span><span class="b">“Why is my payment going through twice?”</span></td><td class="sim">0.947</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“API access without a paid plan?”</span><span class="b">“…without a support contract?”</span></td><td class="sim">0.976</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Miss this month's payment?”</span><span class="b">“Miss next month's payment?”</span></td><td class="sim">0.989</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+          <tr><td class="pair"><span class="a">“Free tier include email support?”</span><span class="b">“…phone support?”</span></td><td class="sim">0.982</td><td><span class="verdict bad">✗ false positive</span></td></tr>
+        </table>
+      </div>
+      <div class="evidence-title" style="margin-top:18px; margin-bottom:0;">All ten clear the match line on meaning alone. Every one would serve the wrong answer.</div>
+    </div>
+  </div>
+</section>
+
+<section id="try3">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">04</span><h2>Try 3: add a guard</h2><span class="tag">the fix, and its limits</span></div>
+    <p>The wrong matches share a pattern. Every one above shares nearly all its words with its partner and differs in exactly the part that flips the answer: a number, a currency, a role, monthly versus annual, upgrade versus downgrade, a “not.” Catching that takes no understanding of meaning at all. It takes reading the sentence for the few words that change everything.</p>
+    <p>So I added a guard that runs after the meaning check, not instead of it. If two questions clear the match line but disagree on a number, or sit on opposite sides of a short list of watched groups (billing period, role, direction, currency, contact channel, time reference), or one says “not” where the other doesn't, the guard blocks the reuse and falls through to the next-best answer, or to an honest miss.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="stat-row two">
+      <div class="stat"><div class="num bad">100%</div><div class="lbl">false-positive rate, raw similarity</div></div>
+      <div class="stat"><div class="num good">20%</div><div class="lbl">false-positive rate, with the guard (2 / 10)</div></div>
+    </div>
+  </div>
+  <div class="wrap prose">
+    <p>That's a genuine gain: five times fewer wrong answers on the exact set I built to break it. But it's a patch, not a proof. Two pairs still slip through, and both point at something the guard can't reach:</p>
+  </div>
+  <div class="wrap panel">
+    <div class="gap-grid">
+      <div class="gap-card">
+        <div class="g-eyebrow">Still wrong · sim 0.966</div>
+        <p><strong>“Cancel my subscription?”</strong> vs. <strong>“Cancel and still get a refund?”</strong>. The second question quietly asks for more, and it needs a longer, different answer. No number, currency, or “not” gives the guard anything to catch.</p>
+      </div>
+      <div class="gap-card">
+        <div class="g-eyebrow">Still wrong · sim 0.976</div>
+        <p><strong>“API without a paid plan?”</strong> vs. <strong>“…without a support contract?”</strong>. Two different things stand between the user and the feature, but “paid plan” and “support contract” aren't in any group the guard watches, so it never sees the swap.</p>
+      </div>
+      <div class="gap-card">
+        <div class="g-eyebrow">By design, not a gap</div>
+        <p>A test (<code>test_known_gap_not_caught_by_design</code>) pins this exact pair down on purpose, so a later change to the guard can't quietly claim to cover something it still misses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tradeoff">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">05</span><h2>The real tradeoff</h2></div>
+    <p>The sweep and the hand-built pairs are worst-case on purpose. The question that actually decides whether to ship this is what happens on normal, mixed traffic. So I ran 4,000 requests through three setups back to back: weighted so a few questions dominate the way they do in real life, spread across 15 questions, with four confusable pairs mixed in.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="evidence">
+      <div class="evidence-title">4,000 requests: no cache vs. exact-only vs. meaning-matching with the guard on</div>
+      <div class="bars">
+        <div class="bar-group">
+          <h4>Hit rate</h4>
+          <div class="bar-row"><span class="name">no cache</span><div class="bar-track"><div class="bar-fill" style="width:0%; background:var(--ink-faint);"></div></div><span class="val">0.0%</span></div>
+          <div class="bar-row"><span class="name">exact-only</span><div class="bar-track"><div class="bar-fill" style="width:93.8%; background:var(--signal);"></div></div><span class="val">93.8%</span></div>
+          <div class="bar-row"><span class="name">semantic-tuned</span><div class="bar-track"><div class="bar-fill" style="width:99.1%; background:var(--signal);"></div></div><span class="val">99.1%</span></div>
+        </div>
+        <div class="bar-group">
+          <h4>Wrong-answer rate, of hits served</h4>
+          <div class="bar-row"><span class="name">no cache</span><div class="bar-track"><div class="bar-fill" style="width:0%; background:var(--bad);"></div></div><span class="val">n/a</span></div>
+          <div class="bar-row"><span class="name">exact-only</span><div class="bar-track"><div class="bar-fill" style="width:0%; background:var(--bad);"></div></div><span class="val">0.0%</span></div>
+          <div class="bar-row"><span class="name">semantic-tuned</span><div class="bar-track"><div class="bar-fill" style="width:18.9%; background:var(--bad);"></div></div><span class="val">18.9%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap prose">
+    <p>Cost tells a clean story. Exact-only cuts spend 94.0% against no cache, and adding the meaning tier pushes that to 99.2%. Read only that line and turning meaning-matching on looks like an easy call.</p>
+    <p>It isn't. The meaning tier adds <strong>5.3 points</strong> of hit rate over exact-matching alone, and <strong>18.9% of those extra hits serve the wrong answer.</strong> Of the 3,205 meaning-based hits in this run, 607 handed someone an answer to a question they didn't ask. Exact-matching alone already captured almost all of the savings with zero risk. The extra that meaning-matching buys is real, but it comes stapled to an error rate the cost number never hints at.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">06</span><h2>What still doesn't work</h2></div>
+    <dl>
+      <div class="issue">
+        <dt>The meaning model is weak</dt>
+        <dd>The tool I used to turn questions into numbers is a basic one, not a modern sentence model. My build environment couldn't reach the download for the better one, so I substituted. That's a real step down, and a good chunk of the bad accuracy above is a property of <strong>this specific tool</strong>, not a law of meaning-matching in general. Swapping it (I explain how in the design section) is the first thing I'd do before trusting these numbers past a demo.</dd>
+      </div>
+      <div class="issue">
+        <dt>The guard will always have a next gap</dt>
+        <dd>The two misses in Try 3 aren't near-catches. They're two different shapes of failure the guard has no rule for. Any guard built from a fixed list of rules will always have a next category it hasn't been told about. It lowers the error rate; it doesn't reach zero.</dd>
+      </div>
+      <div class="issue">
+        <dt>It only looks at one question at a time</dt>
+        <dd>Every test here treats a question as a standalone line of text. A real conversation carries context: “what about for annual?” right after a monthly-refund question is perfectly clear to a person, and completely meaningless to the cache on its own. I haven't tested this, and it's probably a bigger real-world risk than anything I measured above.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">07</span><h2>The bug that almost shipped</h2><span class="tag">process, not just numbers</span></div>
+    <p>Before I called this done, I ran the code past an independent review: fresh eyes, no stake in the result, told to hunt for correctness and security problems instead of confirming the story so far. It found one.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="incident">
+      <div class="i-eyebrow">⚠ cross-tenant data leak · found live, fixed same day</div>
+      <p>Each customer's cached answers are supposed to be walled off from every other customer's. The lookup found a customer's entries by matching their name against the stored keys, and the matching language treats the <code>*</code> character as “match anything.” So a request that set its customer name to <code>*</code> matched <em>every</em> customer's data, not just its own. The reviewer proved it live: stored one customer's private answer, asked for it back under a different customer's wildcard name, and got it. That broke the one guarantee the whole project leads with.</p>
+      <p>I fixed it the same day instead of filing it for later. A customer name now has to be plain letters, numbers, dashes, and underscores, checked both at the front door and again inside the cache itself, so nothing with a wildcard in it ever reaches the matching step. Three tests reproduce the original exploit. I re-checked it live over real HTTP: the request that used to leak data now gets turned away at the door.</p>
+    </div>
+  </div>
+  <div class="wrap prose">
+    <p>None of my tests had caught it, because none of them used a customer name with a wildcard in it. That surface was just never touched. It's the best argument I know for putting a real review in front of “done.” It caught the one bug that actually mattered, and nothing else would have.</p>
+  </div>
+</section>
+
+<section id="design">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">08</span><h2>Why these tools, and what I turned down</h2><span class="tag">technical detail</span></div>
+    <p>This is the section where I get specific. Some of these calls were forced by my build environment and some I made freely, and I want to be clear about which is which. A few of the free ones went against the brief I started from, and I think they made the project better.</p>
+
+    <h3 class="sub">Storage: plain Redis and a brute-force scan, not a vector database</h3>
+    <p>The instinct for meaning-matching is to reach for a dedicated vector database (Qdrant) or Redis Stack with its HNSW index, so lookups stay fast as the data grows. I used plain Redis and a simple loop that scores the new question against every stored one. That sounds naive until you count what actually gets stored. A cache like this holds one entry per <em>distinct answer the system gives</em>, not one per request. For a single service that's a few hundred to a few thousand entries, not millions, no matter how much traffic you throw at it. Scoring a new question against a few thousand stored vectors in NumPy takes well under a millisecond. An approximate-nearest-neighbour index like HNSW earns its extra moving parts once you're into tens of thousands of vectors and up. Below that, it's a second stateful service to run and reason about, solving a speed problem I don't have.</p>
+    <p>Plain Redis bought a safety property too. I keep each customer's entries under their own key prefix (<code>sc:{customer}:*</code>), so a lookup physically can't see another customer's keys. A single shared vector index would instead rely on every query remembering to filter by customer, and one forgotten filter is a silent cross-tenant leak. That's almost exactly the bug that bit me anyway (section 07), which is the best possible argument for making the isolation structural instead of a filter you have to remember.</p>
+
+    <h3 class="sub">Meaning model: spaCy word vectors, not a trained sentence model</h3>
+    <p>My plan was <code>fastembed</code> with <code>bge-small</code>, a proper trained sentence model that's good at telling “worded alike” from “means the same.” My build environment couldn't reach the servers those weights download from, so I fell back to spaCy's <code>en_core_web_md</code>, whose word vectors ship inside the install package with nothing to fetch at runtime. I turned down two other options on their own merits: <code>sentence-transformers</code> would have dragged in PyTorch, a heavy dependency for something meant to sit in a fast request path; OpenAI's hosted embeddings are high quality but cost money per call, and part of the point was showing you can answer the core question without paying per embedding.</p>
+    <p>The tradeoff I accepted is real and it's the main limitation of the whole project. Averaging word vectors is worse than a trained sentence model at exactly the thing this study cares about: telling a real paraphrase apart from two sentences that look alike but mean different things. That weakness is a big part of the poor accuracy in the charts above. Outside a locked-down environment, swapping the single <code>embed()</code> function for <code>bge-small</code> or <code>MiniLM</code> is the whole upgrade. Nothing else in the design changes.</p>
+
+    <h3 class="sub">The model behind the cache: a deterministic stand-in, not a paid API</h3>
+    <p>Every eval needs to be re-runnable at zero cost each time I change a setting, so on a cache miss the “model” is a deterministic stand-in paired with a cost calculator built on real published per-token prices. A real hosted model would make the benchmark slow, non-repeatable, and metered, none of which helps me answer the question I care about. I wired in a local Ollama model for a single genuine proof that the proxy really does call out on a miss, but my sandbox blocked that download too, so that one path is built and not yet run. The cost figures come from the price math, not from invented savings.</p>
+
+    <h3 class="sub">Test data: Quora Question Pairs, plus a hand-built adversarial set</h3>
+    <p>To measure whether a “match” is actually correct, I need an answer key: pairs of questions humans have already labeled as the same or not. Quora Question Pairs is exactly that, hundreds of thousands of labeled pairs, free. It covers the general case. It doesn't cover the domain-specific traps a support bot hits (monthly versus annual, one order number versus another, USD versus EUR), so I hand-built ten of those myself. That's the set the guard was designed against.</p>
+
+    <h3 class="sub">Left out on purpose: a metrics dashboard</h3>
+    <p>Prometheus and Grafana would give this real production monitoring. They also wouldn't change a single conclusion in this walkthrough, so they'd be scope without insight. I cut them to keep the project pointed at the one question it exists to answer.</p>
+
+    <p style="margin-top:26px;">The table below is the same set of decisions at a glance.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="evidence">
+      <div class="overflow-x">
+        <table class="recap">
+          <tr><th>Decision</th><th>What shipped</th><th>Why</th></tr>
+          <tr><td>Storage</td><td>Plain Redis, brute-force cosine scan</td><td>Turned down a vector database. At cache scale (a few thousand entries) a linear scan is sub-millisecond, and per-customer key prefixes make cross-tenant leaks structurally impossible.</td></tr>
+          <tr><td>Meaning model</td><td>spaCy <code>en_core_web_md</code> word vectors</td><td>Planned <code>bge-small</code>; its weights were unreachable in my sandbox. A real downgrade, not a free swap. Swapping the one <code>embed()</code> call is the upgrade path.</td></tr>
+          <tr><td>Match threshold</td><td>0.90, only trusted behind the guard, <em>not</em> safe on its own</td><td>No threshold anywhere clears a safe accuracy bar. Ship exact-matching always; ship meaning-matching only behind the guard and a measured error budget.</td></tr>
+          <tr><td>Customer name</td><td>Restricted character set, checked in two places</td><td>An independent review found an unrestricted name could read every customer's data. See section 07.</td></tr>
+          <tr><td>Answer lifetime</td><td>Shorter for time-sensitive questions, longer otherwise</td><td>A cached answer to “what's my current balance” shouldn't live as long as one to “how do refunds work.”</td></tr>
+          <tr><td>The model itself</td><td>Deterministic stand-in for evals; a real local model wired in but not yet run</td><td>Its download was blocked in every sandbox I had. The proxy works the same either way. See “Run it yourself.”</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="wrap prose">
+    <div class="kicker"><span class="idx">09</span><h2>Run it yourself</h2></div>
+    <p>The proxy and Redis start with one command, and the model behind them defaults to the free, deterministic stand-in.</p>
+  </div>
+  <div class="wrap panel">
+    <div class="evidence">
+      <pre><span class="c"># start the proxy + Redis</span>
+docker compose up --build
+
+<span class="c"># first time seeing this prompt — miss</span>
+curl -X POST localhost:8000/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"namespace":"demo","prompt":"how do I reset my password"}'
+<span class="c"># cache_hit: false, cache_tier: null</span>
+
+<span class="c"># a paraphrase — semantic hit</span>
+curl -X POST localhost:8000/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"namespace":"demo","prompt":"I forgot my password, help"}'
+<span class="c"># cache_hit: true, cache_tier: "semantic"</span></pre>
+    </div>
+    <div class="evidence" style="margin-top:20px;">
+      <div class="evidence-title">Reproduce the three evals</div>
+      <pre>pip install -r requirements.txt -r requirements-eval.txt
+python -m eval.download_qqp
+python -m eval.threshold_sweep        <span class="c"># → threshold_sweep.csv / .png</span>
+python -m eval.adversarial_audit      <span class="c"># → adversarial_summary.txt</span>
+python -m eval.traffic_replay         <span class="c"># → traffic_replay_summary.txt</span>
+pytest tests/ -v                      <span class="c"># 20/20 — tiering, isolation, TTL, guard</span></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap prose">
+    <p style="font-size:14px;">This is a runnable project plus the notes I built it from. Every number above came from a script that still runs, and the loop/ directory in the repo keeps the full build log, including the parts that didn't work the first time.</p>
+    <div class="foot-row" style="margin-top:28px;">
+      <span>semantic-cache · Python 3.11, FastAPI, Redis, spaCy</span>
+      <span>Set in Newsreader / Archivo / IBM Plex Mono</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var data = [
+    [0.50,0.372,1.000,0.542],[0.51,0.372,1.000,0.542],[0.52,0.372,1.000,0.542],
+    [0.53,0.372,1.000,0.542],[0.54,0.372,1.000,0.542],[0.55,0.372,1.000,0.542],
+    [0.56,0.372,1.000,0.542],[0.57,0.372,1.000,0.542],[0.58,0.372,1.000,0.543],
+    [0.59,0.373,1.000,0.543],[0.60,0.373,1.000,0.543],[0.61,0.373,1.000,0.543],
+    [0.62,0.373,1.000,0.543],[0.63,0.373,1.000,0.544],[0.64,0.374,1.000,0.544],
+    [0.65,0.374,1.000,0.544],[0.66,0.374,1.000,0.545],[0.67,0.375,0.999,0.545],
+    [0.68,0.375,0.999,0.546],[0.69,0.376,0.999,0.546],[0.70,0.376,0.999,0.547],
+    [0.71,0.377,0.999,0.547],[0.72,0.378,0.999,0.548],[0.73,0.379,0.999,0.549],
+    [0.74,0.380,0.999,0.551],[0.75,0.382,0.999,0.552],[0.76,0.384,0.998,0.554],
+    [0.77,0.385,0.997,0.556],[0.78,0.388,0.996,0.558],[0.79,0.390,0.995,0.560],
+    [0.80,0.393,0.994,0.563],[0.81,0.396,0.991,0.566],[0.82,0.400,0.988,0.569],
+    [0.83,0.404,0.984,0.573],[0.84,0.409,0.978,0.577],[0.85,0.415,0.970,0.581],
+    [0.86,0.421,0.959,0.585],[0.87,0.428,0.942,0.589],[0.88,0.437,0.921,0.593],
+    [0.89,0.448,0.892,0.596],[0.90,0.461,0.856,0.599],[0.91,0.471,0.804,0.594],
+    [0.92,0.488,0.743,0.589],[0.93,0.498,0.665,0.569],[0.94,0.512,0.574,0.541],
+    [0.95,0.523,0.475,0.498],[0.96,0.530,0.365,0.433],[0.97,0.539,0.257,0.348],
+    [0.98,0.522,0.157,0.242],[0.99,0.473,0.065,0.115]
+  ];
+  var W=900,H=360,padL=40,padR=14,padT=14,padB=32;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var xMin=0.50,xMax=0.99;
+  function xPos(t){ return padL + (t-xMin)/(xMax-xMin)*plotW; }
+  function yPos(v){ return padT + (1-v)*plotH; }
+  var svg=document.getElementById('sweepChart');
+  var ns='http://www.w3.org/2000/svg';
+  function el(tag,attrs){ var e=document.createElementNS(ns,tag); for(var k in attrs){ e.setAttribute(k,attrs[k]); } return e; }
+
+  // gridlines + y-axis labels (0, .25, .5, .75, 1.0)
+  [0,0.25,0.5,0.75,1.0].forEach(function(v){
+    var y=yPos(v);
+    svg.appendChild(el('line',{x1:padL,x2:W-padR,y1:y,y2:y,class:'gridline'}));
+    var t=el('text',{x:padL-8,y:y+3,'text-anchor':'end',class:'axis-label'});
+    t.textContent=(v*100).toFixed(0)+'%';
+    svg.appendChild(t);
+  });
+  // x-axis labels
+  [0.5,0.6,0.7,0.8,0.9,0.97,0.99].forEach(function(t){
+    var x=xPos(t);
+    var tx=el('text',{x:x,y:H-padB+18,'text-anchor':'middle',class:'axis-label'});
+    tx.textContent=t.toFixed(2);
+    svg.appendChild(tx);
+  });
+  svg.appendChild(el('line',{x1:padL,x2:W-padR,y1:H-padB,y2:H-padB,class:'axis-line'}));
+
+  function pathFor(idx){
+    return data.map(function(d,i){ return (i===0?'M':'L')+xPos(d[0]).toFixed(2)+','+yPos(d[idx]).toFixed(2); }).join(' ');
+  }
+  svg.appendChild(el('path',{d:pathFor(3),fill:'none',stroke:'var(--chart-f1)','stroke-width':1.5,'stroke-dasharray':'4 3'}));
+  svg.appendChild(el('path',{d:pathFor(2),fill:'none',stroke:'var(--chart-recall)','stroke-width':2}));
+  svg.appendChild(el('path',{d:pathFor(1),fill:'none',stroke:'var(--chart-precision)','stroke-width':2}));
+
+  // shipped-threshold marker: 0.90 is what the demo actually runs (chosen for
+  // recall + the guard, not for precision, which peaks separately at 0.97).
+  var chosenX=xPos(0.90);
+  svg.appendChild(el('line',{x1:chosenX,x2:chosenX,y1:padT,y2:H-padB,class:'chosen-line'}));
+  var cl=el('text',{x:chosenX+6,y:padT+12,class:'chosen-label'});
+  cl.textContent='shipped: 0.90';
+  svg.appendChild(cl);
+
+  // hover interaction
+  var dotP=el('circle',{r:4,fill:'var(--chart-precision)',class:'hover-dot'});
+  var dotR=el('circle',{r:4,fill:'var(--chart-recall)',class:'hover-dot'});
+  svg.appendChild(dotP); svg.appendChild(dotR);
+  var hitArea=el('rect',{x:padL,y:padT,width:plotW,height:plotH,class:'chart-hit-area'});
+  svg.appendChild(hitArea);
+
+  var tooltip=document.getElementById('sweepTooltip');
+  var wrapEl=document.getElementById('sweepWrap');
+  function nearestIndex(mouseX){
+    var t = xMin + (mouseX-padL)/plotW*(xMax-xMin);
+    var best=0,bd=Infinity;
+    data.forEach(function(d,i){ var dd=Math.abs(d[0]-t); if(dd<bd){bd=dd;best=i;} });
+    return best;
+  }
+  function showTooltip(evt){
+    var rect=svg.getBoundingClientRect();
+    var scale=rect.width/W;
+    var mouseX=(evt.clientX-rect.left)/scale;
+    var i=nearestIndex(mouseX);
+    var d=data[i];
+    var px=xPos(d[0]), pyP=yPos(d[1]), pyR=yPos(d[2]);
+    dotP.setAttribute('cx',px); dotP.setAttribute('cy',pyP); dotP.style.opacity=1;
+    dotR.setAttribute('cx',px); dotR.setAttribute('cy',pyR); dotR.style.opacity=1;
+    tooltip.innerHTML = 'match line '+d[0].toFixed(2)+'<br>right '+(d[1]*100).toFixed(1)+'%<br>caught '+(d[2]*100).toFixed(1)+'%<br>combined '+(d[3]*100).toFixed(1)+'%';
+    var wrapRect=wrapEl.getBoundingClientRect();
+    var tx=(px*scale);
+    var ty=(pyP*scale);
+    tooltip.style.left=tx+'px';
+    tooltip.style.top=(ty-10)+'px';
+    tooltip.style.opacity=1;
+  }
+  function hideTooltip(){ tooltip.style.opacity=0; dotP.style.opacity=0; dotR.style.opacity=0; }
+  hitArea.addEventListener('mousemove', showTooltip);
+  hitArea.addEventListener('mouseleave', hideTooltip);
+  hitArea.style.cursor='crosshair';
+})();
+</script>

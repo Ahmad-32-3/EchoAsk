@@ -1,0 +1,45 @@
+adversarial pairs: 10
+threshold in use: 0.9
+conflict guard: enabled (app/conflict_guard.py)
+false positives (would have served the wrong answer): 2 / 10
+false-positive rate: 20.0%
+
+[correctly rejected] no candidate above threshold  (numeric/plan-type swap — different policy, same sentence shape)
+  A: What's the refund policy for monthly plans?
+  B: What's the refund policy for annual plans?
+
+[FALSE POSITIVE (served A's answer for B)] sim=0.966  (scope addition — second question needs a different, longer answer)
+  A: Can I cancel my subscription?
+  B: Can I cancel my subscription and still get a refund?
+
+[correctly rejected] no candidate above threshold  (entity swap — different eligibility, near-identical wording)
+  A: Do you offer a discount for students?
+  B: Do you offer a discount for teachers?
+
+[correctly rejected] no candidate above threshold  (order-id swap — different customer's data, must never share an answer)
+  A: Is my order #4521 delayed?
+  B: Is my order #7788 delayed?
+
+[correctly rejected] no candidate above threshold  (negation-adjacent action swap — opposite intent)
+  A: How do I upgrade to the Pro plan?
+  B: How do I downgrade from the Pro plan?
+
+[correctly rejected] no candidate above threshold  (currency swap — different numeric answer)
+  A: What is the price of the annual plan in USD?
+  B: What is the price of the annual plan in EUR?
+
+[correctly rejected] no candidate above threshold  (negation/scope — opposite failure modes)
+  A: Why isn't my payment going through?
+  B: Why is my payment going through twice?
+
+[FALSE POSITIVE (served A's answer for B)] sim=0.976  (entity swap — different gating condition)
+  A: Can I use the API without a paid plan?
+  B: Can I use the API without a support contract?
+
+[correctly rejected] no candidate above threshold  (time-reference swap — should classify time-sensitive, not be pooled)
+  A: What happens if I miss this month's payment?
+  B: What happens if I miss next month's payment?
+
+[correctly rejected] no candidate above threshold  (entity swap — different feature, same sentence shape)
+  A: Does the free tier include email support?
+  B: Does the free tier include phone support?

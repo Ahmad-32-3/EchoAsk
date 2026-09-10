@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+redis==5.0.8
+spacy==3.8.16
+# en_core_web_md model wheel (not on PyPI, install separately or via setup):
+# pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl
+numpy==1.26.4
+pydantic==2.9.2
+httpx==0.27.2
+python-dotenv==1.0.1

@@ -1,0 +1,5 @@
+chosen threshold: 0.97
+met precision bar (0.97): False
+at chosen threshold -> precision=0.5389 recall=0.2574 f1=0.3484 accuracy=0.6424
+tp=1912 fp=1636 fn=5516 tn=10936
+sample_size=20000 duplicate_rate=0.3714
